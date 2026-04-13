@@ -1,39 +1,19 @@
-"""
-Empire - Australian Investment Property Analyzer
-Main Flask Application
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
-This is the entry point for the web application.
-"""
-
-from flask import Flask, render_template, request, jsonify
-from config import Config
-import os
-
-# Initialize Flask app
+# Initialize the Flask application
 app = Flask(__name__)
-app.config.from_object(Config)
 
-# Import routes
-from routes import search_routes, property_routes
+# Configure the database URI
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Register blueprints
-app.register_blueprint(search_routes.bp)
-app.register_blueprint(property_routes.bp)
+# Initialize SQLAlchemy
+db = SQLAlchemy(app)
 
-@app.route('/')
-def home():
-    """Home page route"""
-    return render_template('index.html')
+# Import models (assuming models.py contains your models)
+from models import *
 
-@app.errorhandler(404)
-def not_found(error):
-    """Handle 404 errors"""
-    return jsonify({'error': 'Not found'}), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    """Handle 500 errors"""
-    return jsonify({'error': 'Internal server error'}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+# Create tables on startup
+with app.app_context():
+    db.create_all()
